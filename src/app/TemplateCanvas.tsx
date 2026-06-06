@@ -1,7 +1,7 @@
 import logoIcon from '../assets/logo1_black.png';
 import logoText from '../assets/decipher_transparent_clean.png';
 import type { InterviewSlide, PreviewMode, TemplateData, TemplateType } from './templateModel';
-import { templateOptions } from './templateModel';
+import { DECIPHER_DEFAULT_INSTAGRAM_HANDLE, templateOptions } from './templateModel';
 import { useEffect, useState } from 'react';
 
 const WATERMARK_BASE_WIDTH = 1740;
@@ -320,6 +320,8 @@ function renderTemplateCard(
   }
 
   if (cardType === 'speaker') {
+    const speakerTag = data.speaker.tag.trim();
+
     return (
       <div key={reactKey} className={cardClassName}>
         <PaperBackground transparentBase={stripSharedBackground} />
@@ -344,7 +346,7 @@ function renderTemplateCard(
                 />
               </div>
             </div>
-            {data.speaker.tag && (
+            {speakerTag && (
             <div className="absolute top-[172px] left-[978px] z-10 bg-[#2c2419] px-4 py-5">
               <div
                 className="text-[20px] font-medium uppercase tracking-[0.08em] text-[#f6f0e6]"
@@ -354,7 +356,7 @@ function renderTemplateCard(
                   fontFamily: '"SF Mono", "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace'
                 }}
               >
-                {data.speaker.tag}
+                {speakerTag}
               </div>
             </div>
             )}
@@ -379,6 +381,9 @@ function renderTemplateCard(
     );
   }
 
+  const interviewRole = data.interview.role.trim() || DECIPHER_DEFAULT_INSTAGRAM_HANDLE;
+  const interviewTag = data.interview.tag.trim();
+
   return (
     <div key={reactKey} className={cardClassName}>
       <PaperBackground transparentBase={stripSharedBackground} />
@@ -391,7 +396,7 @@ function renderTemplateCard(
               <InterviewImage src={data.interview.image} layout={data.interview.imageLayout} />
             </div>
           </div>
-          {data.interview.tag && (
+          {interviewTag && (
           <div className="absolute left-[714px] top-[792px] z-10 bg-[#2c2419] px-5 py-3">
             <div
               className="text-[18px] font-medium uppercase tracking-[0.12em] text-[#f6f0e6]"
@@ -399,7 +404,7 @@ function renderTemplateCard(
                 fontFamily: '"SF Mono", "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace'
               }}
             >
-              {data.interview.tag}
+              {interviewTag}
             </div>
           </div>
           )}
@@ -415,7 +420,7 @@ function renderTemplateCard(
             {data.interview.name}
           </div>
           <div className="text-[#666666] text-[36px] font-medium leading-relaxed tracking-[-0.015em]">
-            {data.interview.role}
+            {interviewRole}
           </div>
         </div>
       </div>

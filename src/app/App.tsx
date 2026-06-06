@@ -24,6 +24,8 @@ import {
 import officialLogoMark from '../assets/decipher-site/decipher-logo.png';
 import { TemplateCanvas } from './TemplateCanvas';
 import {
+  DECIPHER_DEFAULT_INSTAGRAM_HANDLE,
+  createDefaultInterviewSlide,
   createDefaultTemplateData,
   templateOptions,
   type ImageField,
@@ -47,6 +49,7 @@ type FieldProps = {
   icon: LucideIcon;
   onChange: (value: string) => void;
   placeholder?: string;
+  helper?: string;
 };
 
 const templateMeta: Record<TemplateType, TemplateMeta> = {
@@ -340,10 +343,7 @@ export default function App() {
         ...prev.interview,
         slides: [
           ...prev.interview.slides,
-          {
-            title: `슬라이드 ${prev.interview.slides.length + 1}`,
-            body: ''
-          }
+          createDefaultInterviewSlide(prev.interview.slides.length)
         ]
       }
     }));
@@ -356,6 +356,7 @@ export default function App() {
     icon: Icon,
     onChange,
     placeholder,
+    helper,
   }: FieldProps) => (
     <label className="block space-y-2">
       <span className="flex items-center gap-2 text-sm font-medium text-[#403a32]">
@@ -369,6 +370,11 @@ export default function App() {
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#2c2419]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
       />
+      {helper && (
+        <span className="block text-xs leading-relaxed text-[#8a8176]">
+          {helper}
+        </span>
+      )}
     </label>
   );
 
@@ -378,6 +384,7 @@ export default function App() {
     icon: Icon,
     onChange,
     placeholder,
+    helper,
     rows = 4,
   }: FieldProps & { rows?: number }) => (
     <label className="block space-y-2">
@@ -392,6 +399,11 @@ export default function App() {
         rows={rows}
         className="w-full resize-none rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] leading-relaxed text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#2c2419]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
       />
+      {helper && (
+        <span className="block text-xs leading-relaxed text-[#8a8176]">
+          {helper}
+        </span>
+      )}
     </label>
   );
 
@@ -677,19 +689,23 @@ export default function App() {
                     value: data.weekly.week,
                     icon: Type,
                     onChange: (value) => updateField('week', value),
+                    placeholder: 'Perp Dex 101',
                   })}
                   {renderTextInput({
-                    label: 'Date',
+                    label: 'Session label',
                     value: data.weekly.date,
                     icon: CalendarDays,
                     onChange: (value) => updateField('date', value),
+                    placeholder: '2026-1 Weekly Session # N',
+                    helper: 'Use the weekly session label; omit calendar dates unless the card type already uses them.',
                   })}
                   {renderTextArea({
-                    label: 'Topic',
+                    label: 'Author line',
                     value: data.weekly.topic,
                     icon: Rows3,
                     rows: 3,
                     onChange: (value) => updateField('topic', value),
+                    placeholder: 'by 이름, 이름',
                   })}
                 </>
               )}
@@ -702,24 +718,30 @@ export default function App() {
                     value: data.speaker.name,
                     icon: UserRound,
                     onChange: (value) => updateField('name', value),
+                    placeholder: '홍길동',
                   })}
                   {renderTextInput({
                     label: 'Title',
                     value: data.speaker.title,
                     icon: Type,
                     onChange: (value) => updateField('title', value),
+                    placeholder: 'Affiliation / Role',
                   })}
                   {renderTextInput({
                     label: 'Date',
                     value: data.speaker.date,
                     icon: CalendarDays,
                     onChange: (value) => updateField('date', value),
+                    placeholder: 'YYYY.MM.DD',
+                    helper: 'Speaker cards use date style, not the weekly session label.',
                   })}
                   {renderTextInput({
-                    label: 'Tag',
+                    label: 'Speaker side tag',
                     value: data.speaker.tag,
                     icon: AtSign,
                     onChange: (value) => updateField('tag', value),
+                    placeholder: '@personal_handle',
+                    helper: 'Personal handle only; leave blank when there is no public speaker handle.',
                   })}
                 </>
               )}
@@ -732,18 +754,23 @@ export default function App() {
                     value: data.interview.name,
                     icon: UserRound,
                     onChange: (value) => updateField('name', value),
+                    placeholder: '16기 이름',
                   })}
                   {renderTextInput({
-                    label: 'Role',
+                    label: 'Instagram / lower label',
                     value: data.interview.role,
                     icon: Type,
                     onChange: (value) => updateField('role', value),
+                    placeholder: DECIPHER_DEFAULT_INSTAGRAM_HANDLE,
+                    helper: `Falls back to ${DECIPHER_DEFAULT_INSTAGRAM_HANDLE} when no Instagram handle is provided.`,
                   })}
                   {renderTextInput({
-                    label: 'Tag',
+                    label: 'X side tag',
                     value: data.interview.tag,
                     icon: AtSign,
                     onChange: (value) => updateField('tag', value),
+                    placeholder: '@x_handle',
+                    helper: 'Use only X/Twitter here; leave blank when missing.',
                   })}
                   {data.interview.slides.map((slide, index) => (
                     <div key={`interview-slide-${index}`} className="space-y-3 rounded-md border border-[#e3ddd2] bg-[#fbfaf7] p-3">
