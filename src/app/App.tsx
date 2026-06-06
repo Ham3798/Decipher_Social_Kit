@@ -4,12 +4,11 @@ import {
   CalendarDays,
   Check,
   Download,
-  ExternalLink,
-  Facebook,
   FileImage,
   ImagePlus,
   Instagram,
   Layers3,
+  Linkedin,
   LayoutTemplate,
   LoaderCircle,
   Plus,
@@ -107,12 +106,11 @@ const MediumIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
 );
 
 const officialChannelLinks = [
-  { name: 'Decipher', href: 'https://decipher.ac/ko', icon: ExternalLink },
-  { name: 'Medium', href: 'https://medium.com/decipher-media', icon: MediumIcon },
-  { name: 'Facebook', href: 'https://www.facebook.com/decipher.ac', icon: Facebook },
   { name: 'Instagram', href: 'https://www.instagram.com/decipher_snu/', icon: Instagram },
   { name: 'X', href: 'https://x.com/DecipherGlobal', icon: Twitter },
-  { name: 'Telegram', href: 'https://t.me/s/snu_decipher', icon: Send },
+  { name: 'Medium', href: 'https://medium.com/decipher-media', icon: MediumIcon },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/company/decipher-ac', icon: Linkedin },
+  { name: 'Telegram', href: 'http://t.me/snu_decipher', icon: Send },
 ] as const;
 
 export default function App() {
