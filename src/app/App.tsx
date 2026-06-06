@@ -1,20 +1,28 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type SVGProps } from 'react';
 import {
   AtSign,
   CalendarDays,
+  Check,
   Download,
+  ExternalLink,
+  Facebook,
   FileImage,
   ImagePlus,
+  Instagram,
   Layers3,
   LayoutTemplate,
+  LoaderCircle,
   Plus,
   Rows3,
+  Send,
+  Twitter,
   Type,
   Upload,
   UserRound,
   X,
   type LucideIcon,
 } from 'lucide-react';
+import officialLogoMark from '../assets/decipher-site/decipher-logo.png';
 import { TemplateCanvas } from './TemplateCanvas';
 import {
   createDefaultTemplateData,
@@ -86,6 +94,27 @@ const previewOptions: Array<{
   },
 ];
 
+const MediumIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z" />
+  </svg>
+);
+
+const officialChannelLinks = [
+  { name: 'Decipher', href: 'https://decipher.ac/ko', icon: ExternalLink },
+  { name: 'Medium', href: 'https://medium.com/decipher-media', icon: MediumIcon },
+  { name: 'Facebook', href: 'https://www.facebook.com/decipher.ac', icon: Facebook },
+  { name: 'Instagram', href: 'https://www.instagram.com/decipher_snu/', icon: Instagram },
+  { name: 'X', href: 'https://x.com/DecipherGlobal', icon: Twitter },
+  { name: 'Telegram', href: 'https://t.me/s/snu_decipher', icon: Send },
+] as const;
+
 export default function App() {
   const [templateType, setTemplateType] = useState<TemplateType>('speaker');
   const [previewMode, setPreviewMode] = useState<PreviewMode>('single');
@@ -93,6 +122,7 @@ export default function App() {
   const [data, setData] = useState<TemplateData>(createDefaultTemplateData);
   const [compactPreview, setCompactPreview] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportAction, setExportAction] = useState<'single' | 'all' | null>(null);
   const [exportStatus, setExportStatus] = useState('');
 
   useEffect(() => {
@@ -107,6 +137,13 @@ export default function App() {
 
   const currentTemplate = templateMeta[templateType];
   const currentPreview = previewOptions.find(option => option.value === previewMode) ?? previewOptions[0];
+  const exportSetCount = 3 + data.interview.slides.length;
+  const exportTarget = previewMode === 'strip'
+    ? '3-card strip'
+    : templateType === 'interview' && interviewSlideIndex > 0
+      ? `Interview slide ${interviewSlideIndex}`
+      : currentTemplate.label;
+  const exportStatusText = exportStatus || `Ready: ${exportTarget}`;
   const previewScale = compactPreview
     ? previewMode === 'strip'
       ? 0.105
@@ -202,6 +239,7 @@ export default function App() {
     if (isExporting) return;
 
     setIsExporting(true);
+    setExportAction('single');
     setExportStatus('Preparing PNG...');
 
     try {
@@ -227,6 +265,7 @@ export default function App() {
       window.alert(`PNG export failed: ${message}`);
     } finally {
       setIsExporting(false);
+      setExportAction(null);
     }
   };
 
@@ -234,6 +273,7 @@ export default function App() {
     if (isExporting) return;
 
     setIsExporting(true);
+    setExportAction('all');
     setExportStatus('Preparing export set...');
 
     try {
@@ -279,6 +319,7 @@ export default function App() {
       window.alert(`Export All failed: ${message}`);
     } finally {
       setIsExporting(false);
+      setExportAction(null);
     }
   };
 
@@ -328,7 +369,7 @@ export default function App() {
         value={value}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white"
+        className="w-full rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#2c2419]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
       />
     </label>
   );
@@ -351,7 +392,7 @@ export default function App() {
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
-        className="w-full resize-none rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] leading-relaxed text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white"
+        className="w-full resize-none rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] leading-relaxed text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#2c2419]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
       />
     </label>
   );
@@ -377,13 +418,13 @@ export default function App() {
             type="button"
             onClick={removeImage(imageField)}
             aria-label={`Remove ${label}`}
-            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-[#2c2419] text-white shadow-md transition-opacity hover:opacity-90"
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-[#2c2419] text-white shadow-md transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
           >
             <X size={16} aria-hidden="true" />
           </button>
         </div>
       ) : (
-        <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[#cfc5b8] bg-[#fbfaf7] px-4 py-5 text-center transition-colors hover:border-[#2c2419] hover:bg-white">
+        <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[#cfc5b8] bg-[#fbfaf7] px-4 py-5 text-center transition-colors hover:border-[#2c2419] hover:bg-white focus-within:border-[#2c2419] focus-within:ring-2 focus-within:ring-[#2c2419]/20 focus-within:ring-offset-2 focus-within:ring-offset-[#fffefb]">
           <Upload size={24} className="mb-2 text-[#7d7368]" aria-hidden="true" />
           <span className="text-sm font-medium text-[#403a32]">Upload {label}</span>
           <span className="mt-1 text-xs text-[#8c8378]">JPG, PNG, WEBP</span>
@@ -402,21 +443,48 @@ export default function App() {
     <div className="min-h-screen bg-[#f6f4ef] text-[#25211d]">
       <header className="border-b border-[#e2dbcf] bg-[#fffefb]">
         <div className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-end sm:justify-between lg:px-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8f7f68]">
-              Decipher Social Kit
-            </p>
-            <h1 className="mt-1 text-[28px] font-semibold leading-tight text-[#17130f] sm:text-[32px]">
-              Instagram card maker
-            </h1>
-            <p className="mt-1 text-sm text-[#70675c]">
-              No Codex required. Edit Decipher-ready cards directly in the browser.
-            </p>
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-[#2f281f] bg-[#1f1912] shadow-sm">
+              <img
+                src={officialLogoMark}
+                alt=""
+                aria-hidden="true"
+                className="h-9 w-9 object-contain brightness-0 invert"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8f7f68]">
+                Decipher Social Kit
+              </p>
+              <h1 className="mt-1 text-[28px] font-semibold leading-tight text-[#17130f] sm:text-[32px]">
+                Instagram card maker
+              </h1>
+              <p className="mt-1 text-sm text-[#70675c]">
+                No Codex required. Edit Decipher-ready cards directly in the browser.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs font-medium text-[#51483e]">
-            <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">3 templates</span>
-            <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">1080 x 1350 PNG</span>
-            <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">Browser editor</span>
+          <div className="flex flex-col gap-3 sm:items-end">
+            <div className="flex flex-wrap gap-2 text-xs font-medium text-[#51483e] sm:justify-end">
+              <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">3 templates</span>
+              <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">1080 x 1350 PNG</span>
+              <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">Browser editor</span>
+            </div>
+            <nav aria-label="Official Decipher channels" className="flex items-center gap-1.5">
+              {officialChannelLinks.map(({ name, href, icon: Icon }) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={name}
+                  title={name}
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-[#ded7cc] bg-[#f8f5ee] text-[#50463a] transition-colors hover:border-[#2c2419] hover:bg-white hover:text-[#17130f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </a>
+              ))}
+            </nav>
           </div>
         </div>
       </header>
@@ -435,15 +503,16 @@ export default function App() {
               {templateOptions.map(({ value }) => {
                 const option = templateMeta[value];
                 const Icon = option.icon;
+                const isSelected = templateType === value;
 
                 return (
                   <button
                     key={value}
                     type="button"
                     onClick={() => setTemplateType(value)}
-                    aria-pressed={templateType === value}
-                    className={`rounded-md border p-3 text-left transition-colors ${
-                      templateType === value
+                    aria-pressed={isSelected}
+                    className={`rounded-md border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb] ${
+                      isSelected
                         ? 'border-[#2c2419] bg-[#2c2419] text-white'
                         : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'
                     }`}
@@ -451,17 +520,22 @@ export default function App() {
                     <span className="flex items-center gap-3">
                       <span
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
-                          templateType === value ? 'bg-white/12' : 'bg-[#efe8dd]'
+                          isSelected ? 'bg-white/12' : 'bg-[#efe8dd]'
                         }`}
                       >
                         <Icon size={18} aria-hidden="true" />
                       </span>
                       <span className="min-w-0">
                         <span className="block text-sm font-semibold">{option.label}</span>
-                        <span className={`mt-0.5 block text-xs ${templateType === value ? 'text-white/72' : 'text-[#776d62]'}`}>
+                        <span className={`mt-0.5 block text-xs ${isSelected ? 'text-white/72' : 'text-[#776d62]'}`}>
                           {option.description}
                         </span>
                       </span>
+                      <Check
+                        size={16}
+                        className={`ml-auto shrink-0 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'}`}
+                        aria-hidden="true"
+                      />
                     </span>
                   </button>
                 );
@@ -478,29 +552,39 @@ export default function App() {
               <FileImage size={20} className="text-[#8f7f68]" aria-hidden="true" />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {previewOptions.map(({ value, label, description, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setPreviewMode(value)}
-                  aria-pressed={previewMode === value}
-                  className={`min-h-[92px] rounded-md border p-3 text-left transition-colors ${
-                    previewMode === value
-                      ? 'border-[#2c2419] bg-[#2c2419] text-white'
-                      : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'
-                  }`}
-                >
-                  <Icon size={18} className="mb-2" aria-hidden="true" />
-                  <span className="block text-sm font-semibold">{label}</span>
-                  <span className={`mt-1 block text-xs leading-snug ${previewMode === value ? 'text-white/72' : 'text-[#776d62]'}`}>
-                    {description}
-                  </span>
-                </button>
-              ))}
+              {previewOptions.map(({ value, label, description, icon: Icon }) => {
+                const isSelected = previewMode === value;
+
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPreviewMode(value)}
+                    aria-pressed={isSelected}
+                    className={`min-h-[92px] rounded-md border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb] ${
+                      isSelected
+                        ? 'border-[#2c2419] bg-[#2c2419] text-white'
+                        : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'
+                    }`}
+                  >
+                    <span className="mb-2 flex items-center justify-between">
+                      <Icon size={18} aria-hidden="true" />
+                      <Check size={15} className={`transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'}`} aria-hidden="true" />
+                    </span>
+                    <span className="block text-sm font-semibold">{label}</span>
+                    <span className={`mt-1 block text-xs leading-snug ${isSelected ? 'text-white/72' : 'text-[#776d62]'}`}>
+                      {description}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
-          <section className="rounded-md border border-[#d4cabd] bg-[#fffefb] p-3 shadow-lg shadow-black/[0.045]">
+          <section
+            aria-busy={isExporting}
+            className="rounded-md border border-[#d4cabd] bg-[#fffefb] p-3 shadow-lg shadow-black/[0.045]"
+          >
             <div className="mb-3 flex items-center justify-between gap-3 px-1 text-xs font-medium text-[#6d6358]">
               <span>{currentTemplate.shortLabel}</span>
               <span>{currentPreview.label}</span>
@@ -510,26 +594,37 @@ export default function App() {
                 type="button"
                 onClick={handleExport}
                 disabled={isExporting}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#2c2419] px-3 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+                aria-label={`Export ${exportTarget} as PNG`}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#2c2419] px-3 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
               >
-                <Download size={17} aria-hidden="true" />
+                {exportAction === 'single' ? (
+                  <LoaderCircle size={17} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download size={17} aria-hidden="true" />
+                )}
                 Export PNG
               </button>
               <button
                 type="button"
                 onClick={handleExportAll}
                 disabled={isExporting}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-md border border-[#ded7cc] bg-[#f4efe7] px-3 py-3 text-sm font-semibold text-[#2f2a24] transition-colors hover:border-[#2c2419] hover:bg-white disabled:cursor-wait disabled:opacity-60"
+                aria-label={`Export all ${exportSetCount} PNGs`}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-md border border-[#ded7cc] bg-[#f4efe7] px-3 py-3 text-sm font-semibold text-[#2f2a24] transition-colors hover:border-[#2c2419] hover:bg-white disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
               >
-                <Download size={17} aria-hidden="true" />
-                Export All
+                {exportAction === 'all' ? (
+                  <LoaderCircle size={17} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download size={17} aria-hidden="true" />
+                )}
+                <span>Export All</span>
+                <span className="rounded bg-white/70 px-1.5 py-0.5 text-[11px] leading-none text-[#6d6358]">
+                  {exportSetCount}
+                </span>
               </button>
             </div>
-            {exportStatus && (
-              <p role="status" className="mt-3 px-1 text-xs text-[#6d6358]">
-                {exportStatus}
-              </p>
-            )}
+            <p role="status" className="mt-3 px-1 text-xs text-[#6d6358]">
+              {exportStatusText}
+            </p>
           </section>
 
           {templateType === 'interview' && previewMode === 'single' && (
@@ -539,7 +634,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={addInterviewSlide}
-                  className="flex h-9 items-center gap-1.5 rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 text-sm font-medium text-[#2f2a24] transition-colors hover:border-[#2c2419] hover:bg-white"
+                  className="flex h-9 items-center gap-1.5 rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 text-sm font-medium text-[#2f2a24] transition-colors hover:border-[#2c2419] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb]"
                 >
                   <Plus size={15} aria-hidden="true" />
                   Add
@@ -555,7 +650,7 @@ export default function App() {
                     type="button"
                     onClick={() => setInterviewSlideIndex(value)}
                     aria-pressed={interviewSlideIndex === value}
-                    className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+                    className={`rounded-md border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2c2419]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffefb] ${
                       interviewSlideIndex === value
                         ? 'border-[#2c2419] bg-[#2c2419] text-white'
                         : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'

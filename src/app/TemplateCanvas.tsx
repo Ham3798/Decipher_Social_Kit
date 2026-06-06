@@ -281,7 +281,8 @@ function renderTemplateCard(
   data: TemplateData,
   cardType: TemplateType,
   connected = false,
-  stripSharedBackground = false
+  stripSharedBackground = false,
+  reactKey?: string
 ) {
   const cardClassName = connected
     ? 'relative isolate w-[1080px] h-[1350px] shrink-0 overflow-hidden'
@@ -291,7 +292,7 @@ function renderTemplateCard(
     const weeklyImages = [data.weekly.imageLeft, data.weekly.imageRight].filter(Boolean) as string[];
 
     return (
-      <div className={cardClassName}>
+      <div key={reactKey} className={cardClassName}>
         <PaperBackground transparentBase={stripSharedBackground} />
         <BrandBackdrop segmentIndex={1} />
         <TopAccent variant="weekly" />
@@ -320,7 +321,7 @@ function renderTemplateCard(
 
   if (cardType === 'speaker') {
     return (
-      <div className={cardClassName}>
+      <div key={reactKey} className={cardClassName}>
         <PaperBackground transparentBase={stripSharedBackground} />
         <BrandBackdrop segmentIndex={0} />
         <TopAccent variant="speaker" />
@@ -379,7 +380,7 @@ function renderTemplateCard(
   }
 
   return (
-    <div className={cardClassName}>
+    <div key={reactKey} className={cardClassName}>
       <PaperBackground transparentBase={stripSharedBackground} />
       <BrandBackdrop segmentIndex={2} />
       <TopAccent variant="interview" />
@@ -449,7 +450,7 @@ export function TemplateCanvas({
         <PaperBackground strip />
       </div>
       <div className="relative z-10 flex h-full w-full">
-        {templateOptions.map(({ value }) => renderTemplateCard(data, value, true, true))}
+        {templateOptions.map(({ value }) => renderTemplateCard(data, value, true, true, `strip-${value}`))}
       </div>
       <div
         className="pointer-events-none absolute inset-0 z-[5]"
