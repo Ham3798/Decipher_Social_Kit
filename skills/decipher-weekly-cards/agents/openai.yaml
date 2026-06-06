@@ -1,0 +1,6 @@
+interface:
+  display_name: "Decipher Weekly Cards"
+  short_description: "Generate Decipher weekly Instagram cards"
+  default_prompt: "Use $decipher-weekly-cards to create this week Instagram card set from my photo folder and notes."
+policy:
+  allow_implicit_invocation: true
