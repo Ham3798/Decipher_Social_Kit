@@ -15,6 +15,7 @@ interface TemplateCanvasProps {
   templateType: TemplateType;
   previewMode: PreviewMode;
   interviewSlideIndex: number;
+  previewScale?: number;
   scaled?: boolean;
 }
 
@@ -434,10 +435,11 @@ export function TemplateCanvas({
   templateType,
   previewMode,
   interviewSlideIndex,
+  previewScale: customPreviewScale,
   scaled = false,
 }: TemplateCanvasProps) {
   const { width, height } = getCanvasDimensions(previewMode);
-  const previewScale = previewMode === 'strip' ? 0.24 : 0.4;
+  const previewScale = customPreviewScale ?? (previewMode === 'strip' ? 0.24 : 0.4);
   const scaledWidth = width * previewScale;
   const scaledHeight = height * previewScale;
 

@@ -1,5 +1,20 @@
-import { useState } from 'react';
-import { Download, Upload, X } from 'lucide-react';
+import { useEffect, useState, type ChangeEvent } from 'react';
+import {
+  AtSign,
+  CalendarDays,
+  Download,
+  FileImage,
+  ImagePlus,
+  Layers3,
+  LayoutTemplate,
+  Plus,
+  Rows3,
+  Type,
+  Upload,
+  UserRound,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import { TemplateCanvas } from './TemplateCanvas';
 import {
   createDefaultTemplateData,
@@ -11,11 +26,94 @@ import {
   type TemplateType,
 } from './templateModel';
 
+type TemplateMeta = {
+  label: string;
+  shortLabel: string;
+  description: string;
+  contentLabel: string;
+  icon: LucideIcon;
+};
+
+type FieldProps = {
+  label: string;
+  value: string;
+  icon: LucideIcon;
+  onChange: (value: string) => void;
+  placeholder?: string;
+};
+
+const templateMeta: Record<TemplateType, TemplateMeta> = {
+  speaker: {
+    label: 'Speaker Session',
+    shortLabel: 'Speaker',
+    description: 'Photo, speaker, title, date, and handle.',
+    contentLabel: 'Speaker content',
+    icon: UserRound,
+  },
+  weekly: {
+    label: 'Weekly Session',
+    shortLabel: 'Weekly',
+    description: 'Two photos, topic, author line, and session date.',
+    contentLabel: 'Weekly content',
+    icon: LayoutTemplate,
+  },
+  interview: {
+    label: 'Interview',
+    shortLabel: 'Interview',
+    description: 'Cover information plus editable interview slides.',
+    contentLabel: 'Interview content',
+    icon: Rows3,
+  },
+};
+
+const previewOptions: Array<{
+  value: PreviewMode;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}> = [
+  {
+    value: 'single',
+    label: 'Single Card',
+    description: 'One 1080 x 1350 post.',
+    icon: FileImage,
+  },
+  {
+    value: 'strip',
+    label: '3-Card Strip',
+    description: 'Speaker, weekly, interview.',
+    icon: Layers3,
+  },
+];
+
 export default function App() {
   const [templateType, setTemplateType] = useState<TemplateType>('speaker');
   const [previewMode, setPreviewMode] = useState<PreviewMode>('single');
   const [interviewSlideIndex, setInterviewSlideIndex] = useState(0);
   const [data, setData] = useState<TemplateData>(createDefaultTemplateData);
+  const [compactPreview, setCompactPreview] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState('');
+
+  useEffect(() => {
+    const syncPreviewSize = () => {
+      setCompactPreview(window.innerWidth < 768);
+    };
+
+    syncPreviewSize();
+    window.addEventListener('resize', syncPreviewSize);
+    return () => window.removeEventListener('resize', syncPreviewSize);
+  }, []);
+
+  const currentTemplate = templateMeta[templateType];
+  const currentPreview = previewOptions.find(option => option.value === previewMode) ?? previewOptions[0];
+  const previewScale = compactPreview
+    ? previewMode === 'strip'
+      ? 0.105
+      : 0.3
+    : previewMode === 'strip'
+      ? 0.24
+      : 0.4;
 
   const updateField = (field: string, value: string) => {
     setData(prev => ({
@@ -27,13 +125,13 @@ export default function App() {
     }));
   };
 
-  const handleImageUpload = (imageField: ImageField) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageUpload = (imageField: ImageField) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageUrl = event.target?.result as string;
+    reader.onload = (readerEvent) => {
+      const imageUrl = readerEvent.target?.result as string;
       setData(prev => ({
         ...prev,
         [templateType]: {
@@ -101,6 +199,11 @@ export default function App() {
   };
 
   const handleExport = async () => {
+    if (isExporting) return;
+
+    setIsExporting(true);
+    setExportStatus('Preparing PNG...');
+
     try {
       const stamp = Date.now();
       const isInterviewSlide = templateType === 'interview' && interviewSlideIndex > 0;
@@ -116,14 +219,23 @@ export default function App() {
         preview: previewMode,
         slideIndex: interviewSlideIndex
       });
+      setExportStatus(`Downloaded ${fileName}`);
     } catch (error) {
       console.error('Failed to export PNG', error);
       const message = error instanceof Error ? error.message : 'Unknown export error';
+      setExportStatus('PNG export failed');
       window.alert(`PNG export failed: ${message}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
   const handleExportAll = async () => {
+    if (isExporting) return;
+
+    setIsExporting(true);
+    setExportStatus('Preparing export set...');
+
     try {
       const stamp = Date.now();
       const exportQueue: Array<{ fileName: string; template: TemplateType; preview: PreviewMode; slideIndex: number }> = [
@@ -153,14 +265,20 @@ export default function App() {
         }))
       ];
 
-      for (const item of exportQueue) {
+      for (const [index, item] of exportQueue.entries()) {
+        setExportStatus(`Exporting ${index + 1} of ${exportQueue.length}...`);
         await requestExportPng(item);
         await new Promise(resolve => setTimeout(resolve, 120));
       }
+
+      setExportStatus(`Downloaded ${exportQueue.length} PNGs`);
     } catch (error) {
       console.error('Failed to export all PNGs', error);
       const message = error instanceof Error ? error.message : 'Unknown export error';
+      setExportStatus('Export set failed');
       window.alert(`Export All failed: ${message}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -193,31 +311,82 @@ export default function App() {
     setInterviewSlideIndex(data.interview.slides.length + 1);
   };
 
+  const renderTextInput = ({
+    label,
+    value,
+    icon: Icon,
+    onChange,
+    placeholder,
+  }: FieldProps) => (
+    <label className="block space-y-2">
+      <span className="flex items-center gap-2 text-sm font-medium text-[#403a32]">
+        <Icon size={15} className="text-[#8d7d68]" aria-hidden="true" />
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white"
+      />
+    </label>
+  );
+
+  const renderTextArea = ({
+    label,
+    value,
+    icon: Icon,
+    onChange,
+    placeholder,
+    rows = 4,
+  }: FieldProps & { rows?: number }) => (
+    <label className="block space-y-2">
+      <span className="flex items-center gap-2 text-sm font-medium text-[#403a32]">
+        <Icon size={15} className="text-[#8d7d68]" aria-hidden="true" />
+        {label}
+      </span>
+      <textarea
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        rows={rows}
+        className="w-full resize-none rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 py-2.5 text-[15px] leading-relaxed text-[#25211d] shadow-inner shadow-black/[0.015] outline-none transition-colors placeholder:text-[#a49a8c] focus:border-[#2c2419] focus:bg-white"
+      />
+    </label>
+  );
+
   const renderImageUploader = (
     label: string,
     image: string | null,
     imageField: ImageField,
   ) => (
-    <div>
-      <label className="block mb-2 text-sm">{label}</label>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-sm font-medium text-[#403a32]">
+        <ImagePlus size={15} className="text-[#8d7d68]" aria-hidden="true" />
+        {label}
+      </div>
       {image ? (
-        <div className="relative">
+        <div className="relative overflow-hidden rounded-md border border-[#ded7cc] bg-[#f5f2ec]">
           <img
             src={image}
             alt={`${label} preview`}
-            className="w-full h-32 object-cover rounded-lg"
+            className="h-36 w-full object-cover"
           />
           <button
+            type="button"
             onClick={removeImage(imageField)}
-            className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
+            aria-label={`Remove ${label}`}
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md bg-[#2c2419] text-white shadow-md transition-opacity hover:opacity-90"
           >
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
       ) : (
-        <label className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
-          <Upload size={24} className="mb-2 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Upload {label}</span>
+        <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[#cfc5b8] bg-[#fbfaf7] px-4 py-5 text-center transition-colors hover:border-[#2c2419] hover:bg-white">
+          <Upload size={24} className="mb-2 text-[#7d7368]" aria-hidden="true" />
+          <span className="text-sm font-medium text-[#403a32]">Upload {label}</span>
+          <span className="mt-1 text-xs text-[#8c8378]">JPG, PNG, WEBP</span>
           <input
             type="file"
             accept="image/*"
@@ -230,245 +399,312 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex">
-      <div className="w-80 bg-white border-r border-border p-6 flex flex-col">
-        <div className="mb-8">
-          <h1 className="mb-1">Decipher Templates</h1>
-          <p className="text-sm text-muted-foreground">Instagram 1080×1350</p>
-        </div>
-
-        <div className="mb-8">
-          <label className="block mb-3 text-sm">Template Type</label>
-          <div className="space-y-2">
-            {templateOptions.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setTemplateType(value)}
-                className={`w-full px-4 py-3 text-left rounded-lg transition-colors ${
-                  templateType === value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted hover:bg-accent'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+    <div className="min-h-screen bg-[#f6f4ef] text-[#25211d]">
+      <header className="border-b border-[#e2dbcf] bg-[#fffefb]">
+        <div className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-end sm:justify-between lg:px-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8f7f68]">
+              Decipher Social Kit
+            </p>
+            <h1 className="mt-1 text-[28px] font-semibold leading-tight text-[#17130f] sm:text-[32px]">
+              Instagram card maker
+            </h1>
+            <p className="mt-1 text-sm text-[#70675c]">
+              No Codex required. Edit Decipher-ready cards directly in the browser.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs font-medium text-[#51483e]">
+            <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">3 templates</span>
+            <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">1080 x 1350 PNG</span>
+            <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">Browser editor</span>
           </div>
         </div>
+      </header>
 
-        <div className="mb-8">
-          <label className="block mb-3 text-sm">Preview Mode</label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: 'single', label: 'Single Card' },
-              { value: 'strip', label: '3-Card Strip' }
-            ].map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setPreviewMode(value as PreviewMode)}
-                className={`px-4 py-3 text-left rounded-lg transition-colors ${
-                  previewMode === value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted hover:bg-accent'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <main className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 lg:grid-cols-[380px_minmax(0,1fr)] lg:px-6">
+        <aside className="space-y-4 lg:sticky lg:top-5 lg:max-h-[calc(100vh-40px)] lg:overflow-y-auto lg:pr-1">
+          <section className="rounded-md border border-[#ded7cc] bg-[#fffefb] p-4 shadow-sm shadow-black/[0.025]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-[#201b16]">Template</h2>
+                <p className="text-sm text-[#756b60]">Choose the card family.</p>
+              </div>
+              <LayoutTemplate size={20} className="text-[#8f7f68]" aria-hidden="true" />
+            </div>
+            <div className="grid gap-2">
+              {templateOptions.map(({ value }) => {
+                const option = templateMeta[value];
+                const Icon = option.icon;
 
-        {templateType === 'interview' && previewMode === 'single' && (
-          <div className="mb-8">
-            <label className="block mb-3 text-sm">Interview Slide</label>
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setTemplateType(value)}
+                    aria-pressed={templateType === value}
+                    className={`rounded-md border p-3 text-left transition-colors ${
+                      templateType === value
+                        ? 'border-[#2c2419] bg-[#2c2419] text-white'
+                        : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
+                          templateType === value ? 'bg-white/12' : 'bg-[#efe8dd]'
+                        }`}
+                      >
+                        <Icon size={18} aria-hidden="true" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold">{option.label}</span>
+                        <span className={`mt-0.5 block text-xs ${templateType === value ? 'text-white/72' : 'text-[#776d62]'}`}>
+                          {option.description}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="rounded-md border border-[#ded7cc] bg-[#fffefb] p-4 shadow-sm shadow-black/[0.025]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-[#201b16]">Format</h2>
+                <p className="text-sm text-[#756b60]">Match the final download.</p>
+              </div>
+              <FileImage size={20} className="text-[#8f7f68]" aria-hidden="true" />
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              {[{ value: 0, label: 'Cover' }, ...data.interview.slides.map((_, index) => ({
-                value: index + 1,
-                label: `Slide ${index + 1}`
-              }))].map(({ value, label }) => (
+              {previewOptions.map(({ value, label, description, icon: Icon }) => (
                 <button
                   key={value}
-                  onClick={() => setInterviewSlideIndex(value)}
-                  className={`px-3 py-3 text-left rounded-lg transition-colors ${
-                    interviewSlideIndex === value
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted hover:bg-accent'
+                  type="button"
+                  onClick={() => setPreviewMode(value)}
+                  aria-pressed={previewMode === value}
+                  className={`min-h-[92px] rounded-md border p-3 text-left transition-colors ${
+                    previewMode === value
+                      ? 'border-[#2c2419] bg-[#2c2419] text-white'
+                      : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'
                   }`}
                 >
-                  {label}
+                  <Icon size={18} className="mb-2" aria-hidden="true" />
+                  <span className="block text-sm font-semibold">{label}</span>
+                  <span className={`mt-1 block text-xs leading-snug ${previewMode === value ? 'text-white/72' : 'text-[#776d62]'}`}>
+                    {description}
+                  </span>
                 </button>
               ))}
+            </div>
+          </section>
+
+          <section className="rounded-md border border-[#d4cabd] bg-[#fffefb] p-3 shadow-lg shadow-black/[0.045]">
+            <div className="mb-3 flex items-center justify-between gap-3 px-1 text-xs font-medium text-[#6d6358]">
+              <span>{currentTemplate.shortLabel}</span>
+              <span>{currentPreview.label}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={addInterviewSlide}
-                className="px-3 py-3 text-left rounded-lg transition-colors bg-muted hover:bg-accent"
+                type="button"
+                onClick={handleExport}
+                disabled={isExporting}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#2c2419] px-3 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
               >
-                + Add Slide
+                <Download size={17} aria-hidden="true" />
+                Export PNG
+              </button>
+              <button
+                type="button"
+                onClick={handleExportAll}
+                disabled={isExporting}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-md border border-[#ded7cc] bg-[#f4efe7] px-3 py-3 text-sm font-semibold text-[#2f2a24] transition-colors hover:border-[#2c2419] hover:bg-white disabled:cursor-wait disabled:opacity-60"
+              >
+                <Download size={17} aria-hidden="true" />
+                Export All
               </button>
             </div>
+            {exportStatus && (
+              <p role="status" className="mt-3 px-1 text-xs text-[#6d6358]">
+                {exportStatus}
+              </p>
+            )}
+          </section>
+
+          {templateType === 'interview' && previewMode === 'single' && (
+            <section className="rounded-md border border-[#ded7cc] bg-[#fffefb] p-4 shadow-sm shadow-black/[0.025]">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-base font-semibold text-[#201b16]">Interview slide</h2>
+                <button
+                  type="button"
+                  onClick={addInterviewSlide}
+                  className="flex h-9 items-center gap-1.5 rounded-md border border-[#ded7cc] bg-[#fbfaf7] px-3 text-sm font-medium text-[#2f2a24] transition-colors hover:border-[#2c2419] hover:bg-white"
+                >
+                  <Plus size={15} aria-hidden="true" />
+                  Add
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[{ value: 0, label: 'Cover' }, ...data.interview.slides.map((_, index) => ({
+                  value: index + 1,
+                  label: `Slide ${index + 1}`
+                }))].map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setInterviewSlideIndex(value)}
+                    aria-pressed={interviewSlideIndex === value}
+                    className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+                      interviewSlideIndex === value
+                        ? 'border-[#2c2419] bg-[#2c2419] text-white'
+                        : 'border-[#e3ddd2] bg-[#fbfaf7] text-[#2f2a24] hover:border-[#b9ad9d] hover:bg-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="rounded-md border border-[#ded7cc] bg-[#fffefb] p-4 shadow-sm shadow-black/[0.025]">
+            <div className="mb-4">
+              <h2 className="text-base font-semibold text-[#201b16]">{currentTemplate.contentLabel}</h2>
+              <p className="text-sm text-[#756b60]">{currentTemplate.description}</p>
+            </div>
+
+            <div className="space-y-4">
+              {templateType === 'weekly' && (
+                <>
+                  {renderImageUploader('Photo 1', data.weekly.imageLeft, 'imageLeft')}
+                  {renderImageUploader('Photo 2', data.weekly.imageRight, 'imageRight')}
+                  {renderTextInput({
+                    label: 'Week',
+                    value: data.weekly.week,
+                    icon: Type,
+                    onChange: (value) => updateField('week', value),
+                  })}
+                  {renderTextInput({
+                    label: 'Date',
+                    value: data.weekly.date,
+                    icon: CalendarDays,
+                    onChange: (value) => updateField('date', value),
+                  })}
+                  {renderTextArea({
+                    label: 'Topic',
+                    value: data.weekly.topic,
+                    icon: Rows3,
+                    rows: 3,
+                    onChange: (value) => updateField('topic', value),
+                  })}
+                </>
+              )}
+
+              {templateType === 'speaker' && (
+                <>
+                  {renderImageUploader('Image', data.speaker.image, 'image')}
+                  {renderTextInput({
+                    label: 'Speaker Name',
+                    value: data.speaker.name,
+                    icon: UserRound,
+                    onChange: (value) => updateField('name', value),
+                  })}
+                  {renderTextInput({
+                    label: 'Title',
+                    value: data.speaker.title,
+                    icon: Type,
+                    onChange: (value) => updateField('title', value),
+                  })}
+                  {renderTextInput({
+                    label: 'Date',
+                    value: data.speaker.date,
+                    icon: CalendarDays,
+                    onChange: (value) => updateField('date', value),
+                  })}
+                  {renderTextInput({
+                    label: 'Tag',
+                    value: data.speaker.tag,
+                    icon: AtSign,
+                    onChange: (value) => updateField('tag', value),
+                  })}
+                </>
+              )}
+
+              {templateType === 'interview' && (
+                <>
+                  {renderImageUploader('Image', data.interview.image, 'image')}
+                  {renderTextInput({
+                    label: 'Interviewee Name',
+                    value: data.interview.name,
+                    icon: UserRound,
+                    onChange: (value) => updateField('name', value),
+                  })}
+                  {renderTextInput({
+                    label: 'Role',
+                    value: data.interview.role,
+                    icon: Type,
+                    onChange: (value) => updateField('role', value),
+                  })}
+                  {renderTextInput({
+                    label: 'Tag',
+                    value: data.interview.tag,
+                    icon: AtSign,
+                    onChange: (value) => updateField('tag', value),
+                  })}
+                  {data.interview.slides.map((slide, index) => (
+                    <div key={`interview-slide-${index}`} className="space-y-3 rounded-md border border-[#e3ddd2] bg-[#fbfaf7] p-3">
+                      <div className="text-sm font-semibold text-[#6f6559]">Slide {index + 1}</div>
+                      {renderTextInput({
+                        label: 'Title',
+                        value: slide.title,
+                        icon: Type,
+                        onChange: (value) => updateInterviewSlide(index, 'title', value),
+                      })}
+                      {renderTextArea({
+                        label: 'Body',
+                        value: slide.body,
+                        icon: Rows3,
+                        rows: 7,
+                        onChange: (value) => updateInterviewSlide(index, 'body', value),
+                      })}
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </section>
+        </aside>
+
+        <section className="min-w-0 overflow-hidden rounded-md border border-[#ded7cc] bg-[#eeece6] shadow-sm shadow-black/[0.025]">
+          <div className="flex flex-col gap-3 border-b border-[#ded7cc] bg-[#fffefb] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-[#201b16]">Live preview</h2>
+              <p className="text-sm text-[#756b60]">
+                {currentTemplate.label} · {currentPreview.label}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs font-medium text-[#51483e]">
+              <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">
+                {previewMode === 'strip' ? '3240 x 1350' : '1080 x 1350'}
+              </span>
+              <span className="rounded-md border border-[#ded7cc] bg-[#f8f5ee] px-3 py-2">PNG</span>
+            </div>
           </div>
-        )}
-
-        <div className="flex-1 space-y-4 overflow-y-auto">
-          {templateType === 'weekly' && (
-            <>
-              {renderImageUploader('Photo 1', data.weekly.imageLeft, 'imageLeft')}
-              {renderImageUploader('Photo 2', data.weekly.imageRight, 'imageRight')}
-              <div>
-                <label className="block mb-2 text-sm">Week</label>
-                <input
-                  type="text"
-                  value={data.weekly.week}
-                  onChange={(e) => updateField('week', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Date</label>
-                <input
-                  type="text"
-                  value={data.weekly.date}
-                  onChange={(e) => updateField('date', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Topic</label>
-                <textarea
-                  value={data.weekly.topic}
-                  onChange={(e) => updateField('topic', e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg resize-none"
-                />
-              </div>
-            </>
-          )}
-
-          {templateType === 'speaker' && (
-            <>
-              {renderImageUploader('Image', data.speaker.image, 'image')}
-              <div>
-                <label className="block mb-2 text-sm">Speaker Name</label>
-                <input
-                  type="text"
-                  value={data.speaker.name}
-                  onChange={(e) => updateField('name', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Title</label>
-                <input
-                  type="text"
-                  value={data.speaker.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Date</label>
-                <input
-                  type="text"
-                  value={data.speaker.date}
-                  onChange={(e) => updateField('date', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Tag</label>
-                <input
-                  type="text"
-                  value={data.speaker.tag}
-                  onChange={(e) => updateField('tag', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-            </>
-          )}
-
-          {templateType === 'interview' && (
-            <>
-              {renderImageUploader('Image', data.interview.image, 'image')}
-              <div>
-                <label className="block mb-2 text-sm">Interviewee Name</label>
-                <input
-                  type="text"
-                  value={data.interview.name}
-                  onChange={(e) => updateField('name', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Role</label>
-                <input
-                  type="text"
-                  value={data.interview.role}
-                  onChange={(e) => updateField('role', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-sm">Tag</label>
-                <input
-                  type="text"
-                  value={data.interview.tag}
-                  onChange={(e) => updateField('tag', e.target.value)}
-                  className="w-full px-3 py-2 bg-input-background rounded-lg"
-                />
-              </div>
-              {data.interview.slides.map((slide, index) => (
-                <div key={`interview-slide-${index}`} className="space-y-3 rounded-lg border border-border p-3">
-                  <div className="text-sm font-medium text-muted-foreground">Slide {index + 1}</div>
-                  <div>
-                    <label className="block mb-2 text-sm">Title</label>
-                    <input
-                      type="text"
-                      value={slide.title}
-                      onChange={(e) => updateInterviewSlide(index, 'title', e.target.value)}
-                      className="w-full px-3 py-2 bg-input-background rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-2 text-sm">Body</label>
-                    <textarea
-                      value={slide.body}
-                      onChange={(e) => updateInterviewSlide(index, 'body', e.target.value)}
-                      rows={7}
-                      className="w-full px-3 py-2 bg-input-background rounded-lg resize-none"
-                    />
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-2">
-          <button
-            onClick={handleExport}
-            className="px-4 py-3 bg-primary text-primary-foreground rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-          >
-            <Download size={18} />
-            Export PNG
-          </button>
-          <button
-            onClick={handleExportAll}
-            className="px-4 py-3 bg-muted text-foreground rounded-lg flex items-center justify-center gap-2 hover:bg-accent transition-colors"
-          >
-            <Download size={18} />
-            Export All
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-12">
-        <TemplateCanvas
-          data={data}
-          templateType={templateType}
-          previewMode={previewMode}
-          interviewSlideIndex={interviewSlideIndex}
-          scaled
-        />
-      </div>
+          <div className="min-h-[340px] overflow-auto p-4 sm:min-h-[520px] sm:p-8 lg:flex lg:min-h-[calc(100vh-168px)] lg:items-center lg:justify-center">
+            <div className="mx-auto w-max">
+              <TemplateCanvas
+                data={data}
+                templateType={templateType}
+                previewMode={previewMode}
+                interviewSlideIndex={interviewSlideIndex}
+                previewScale={previewScale}
+                scaled
+              />
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
