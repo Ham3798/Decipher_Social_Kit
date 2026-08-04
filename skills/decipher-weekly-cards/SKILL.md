@@ -1,89 +1,95 @@
 ---
 name: decipher-weekly-cards
-description: Generate Decipher weekly Instagram card/news PNG sets with week1-style visual consistency, mixed-aspect photo layout, Korean card copy inference, and one-shot folder plus memo workflow. Use when Codex needs to create Decipher weekly, speaker, interview, or card-news images from a photo folder and free-form notes, especially for Instagram 1080x1350 outputs using the existing Decipher template renderer.
+description: Generate privacy-safe Decipher weekly Instagram card/news PNG sets with stable weekly, speaker, and interview conventions; exact metadata handling; faithful Korean interview copy; mixed-aspect photo layout; and 1080x1350 export verification. Use when Codex creates or revises Decipher card-news images from a local photo folder and free-form notes.
 ---
 
 # Decipher Weekly Cards
 
-Use this skill to create Decipher Instagram card sets from a photo folder and free-form Korean notes in one pass. The default output is 1080x1350 PNG cards that match the visual tone of the established week1 baseline exports.
+Create Decipher Instagram cards from local photos and Korean notes without retaining week-specific personal inputs in the reusable skill or repository.
 
-## Quick Start
+## Required References
 
-1. Confirm the input photo folder exists with `scripts/validate-weekly-input.mjs <photo-folder>`.
-2. Analyze photo dimensions with `scripts/analyze-images.mjs <photo-folder>`.
-3. Apply the Decipher conventions below before generating copy. If prior week outputs are available, inspect them as a sanity check, but do not rely on inspection for these defaults.
-4. Read `references/week1-style.md` before deciding layout or visual treatment.
-5. Read `references/input-contract.md` when converting loose notes into the internal card spec.
-6. Use the current Decipher renderer workspace unless the user gives a different renderer path. If unclear, locate the project that contains the React template renderer and export script.
-7. Generate or update the renderer payload so it exports only the requested cards.
-8. Inspect generated PNGs before finalizing. Check dimensions, text fit, logo placement, and photo crop quality.
+Read these before generating:
 
-## One-Shot Input Handling
+- `references/week1-style.md` for the visual baseline.
+- `references/editorial-and-layout.md` for metadata, tags, text fidelity, crop, and blank-card rules.
+- `references/input-contract.md` when converting notes into renderer data.
+- `references/privacy-and-publishing.md` before staging, committing, or pushing reusable changes.
 
-Accept a request like:
+Prior-week outputs are optional sanity checks. The references above contain the default decision criteria, so generation must not depend on locating old cards.
 
-```text
-사진 폴더: <photo-folder>
-메모: 자유형 한국어 텍스트, 발표자/주제/날짜/인터뷰 답변/링크
-원하는 카드: optional
-출력 폴더: optional
-```
+## Decision Precedence
 
-Do not stop just because the note is incomplete. Infer conservatively from the folder name, image file names, and note text. Report uncertain fields in the final response as `확인 필요`.
+Resolve conflicts in this order:
+
+1. The user's latest explicit correction.
+2. The current request's notes and photos.
+3. The reusable conventions in this skill.
+4. Prior-week outputs, used only as a visual sanity check.
+
+Never let an older card or earlier message override a newer correction to a name, cohort, order, date, title, or handle.
+
+## Workflow
+
+1. Validate the photo folder with `scripts/validate-weekly-input.mjs <photo-folder>`.
+2. Analyze image dimensions with `scripts/analyze-images.mjs <photo-folder>`.
+3. Build a card spec using `references/input-contract.md` and preserve metadata exactly.
+4. Select layouts using the image analysis and `references/editorial-and-layout.md`.
+5. Render only the requested cards with the current Decipher renderer.
+6. Inspect every generated PNG, not only a representative sample.
+7. Verify dimensions, text fit, spelling, line breaks, tag placement, crop quality, and requested file count.
+8. Keep source photos and generated PNGs outside the repository.
 
 Default output folder:
 
-- Use the user-provided output folder if present.
+- Use the user-provided output folder when present.
 - Otherwise use `<photo-folder>/output`.
-- Keep generated photos and PNGs outside the repository unless the user explicitly asks for public sample assets.
 
-## Content Inference Rules
+## Content Rules
 
-Infer these fields:
+- Transcribe names, cohort, author order, date, session number, title, and handles exactly from the latest user instruction.
+- Do not invent missing people, roles, affiliations, handles, dates, or session numbers. Use `확인 필요` only when a draft must be produced before confirmation.
+- Use the public article or session title supplied by the user. Do not silently shorten or rewrite it.
+- If a week has no speaker session, create the established blank speaker card with the requested date.
+- A normal full set is weekly, speaker, interview cover, and one detail card per interview question. Do not force a fixed count when the request contains a different number of questions.
+- Interview copy defaults to faithful mode: keep every substantive point, original tone, quotations, technical terms, and paragraph structure. Correct only spelling, spacing, and obvious typographical errors unless the user explicitly permits summarization.
+- Use one question and its answer per interview detail card.
+- If interview text is dense, preserve content in this order: improve paragraph breaks, add intentional title line breaks, use bounded font fitting, then report a readability limitation. Never silently delete content to make it fit.
+- For long Korean titles, insert manual newlines at semantic boundaries. Do not split a word or grammatical ending awkwardly.
 
-- Weekly: title/topic, authors, date/session number, 1-3 representative images.
-- Speaker: name, title or affiliation, date/session number, tag, representative image.
-- Interview: name, Instagram handle for the lower name-area label, X/Twitter handle for the dark photo-side tag, cover image, slide titles, and summarized bodies.
+## Image Rules
 
-Defaults:
-
-- If date/session number is missing, use a tentative label like `2026-1 Weekly Session # 확인 필요`.
-- If authors are missing, use `by 확인 필요` instead of inventing names.
-- For weekly cards, prefer the public article or session title from the notes over a shortened topic label. Match prior weeks' `2026-1 Weekly Session # N` spacing and omit dates unless earlier cards of that type include them.
-- For speaker cards, use the speaker date style, typically `YYYY.MM.DD`. Use only the speaker's personal handle for the card side tag when present; do not place company or organization handles on the card.
-- For interview cards, put Instagram near the name in the lower label. If Instagram is missing, use `@decipher_global` in that lower label. Put X/Twitter only in the dark photo-side tag when present. Do not invent role text.
-- If there is no speaker session for a week, still create a blank speaker card with the date when prior no-speaker weeks used that convention.
-- Standard mixed weekly output is eight files: weekly, speaker, interview cover, and five interview detail slides unless the user asks for fewer.
-- Keep Korean copy concise. Summarize long notes into readable card text and avoid dense paragraphs that overflow 1080x1350.
-
-## Image Layout Rules
-
-Use the image analyzer classifications:
-
-- `wide` or `landscape`: preserve context. Prefer a white frame with `object-fit: contain` or a shallow crop that keeps slides, presenter, and screen visible.
-- `portrait` or `tall`: avoid cutting faces or bodies. When the aspect-ratio difference is large, use the interview `portraitBlur` treatment: blurred fill from the same image behind the original photo, with the original photo preserved via contain. This should be the default for interview cover portraits that look awkward in the wide frame.
-- `square`: can use center crop when the subject is centered; otherwise preserve full image.
-- Weekly two-photo collage: stack two landscape photos vertically inside the week1 frame; use left/right columns when portrait-heavy images need more height.
-- For week1-style main cards, align the bottom edge of the weekly, speaker, and interview photo frames. Keep speaker/session photos centered horizontally unless the user gives a different crop direction.
-
-When unsure, bias toward preserving the photo's meaningful content over filling every pixel.
+- Preserve the person, presentation screen, and meaningful scene context before filling every pixel.
+- Use `portraitBlur` for strongly vertical interview photos that would otherwise require an awkward wide crop.
+- Use a restrained same-image blur fill behind a contained sharp foreground. Do not synthesize or alter a person's appearance.
+- For two landscape weekly photos, stack them vertically. For portrait-heavy photos, use columns or weighted cells.
+- When replacing one weekly photo, keep the other photo and its slot unchanged unless the user asks for a full recomposition.
+- Avoid cuts through the head, neck, elbows, knees, or ankles. For full-body photos, crop at an intentional stable boundary while retaining useful environmental context.
 
 ## Renderer Guidance
 
-- The React template supports `weekly`, `speaker`, and `interview`.
-- For interview portrait covers, set `interview.imageLayout` to `portraitBlur` when the photo is too vertical for a clean wide crop.
-- Export size is 1080x1350 for single cards and 3240x1350 for strip mode.
-- File names should follow `decipher-weekly-*`, `decipher-speaker-*`, and `decipher-interview-*`.
-- Keep generated weekly artifacts outside the repository. Do not commit source photos, generated cards, personal handles, raw interview answers, or week-specific notes.
+- Single-card export size is `1080x1350`; strip mode is `3240x1350`.
+- File names begin with `decipher-weekly-`, `decipher-speaker-`, or `decipher-interview-`.
+- Interview detail titles must honor manual newlines with behavior equivalent to `white-space: pre-line`.
+- Keep detail typography uniform within each answer. Use only bounded whole-block scaling; do not add arbitrary word-level emphasis or highly variable type sizes.
+- Keep renderer changes limited to data input, image fit, layout selection, typography fitting, or export automation unless the user asks for a redesign.
 
-If implementation requires renderer changes, keep them narrowly scoped to data input, image fit/layout selection, or export automation. Do not rewrite the visual system unless the user explicitly asks.
+## Verification
 
-## Verification Checklist
+Before delivery:
 
-- Run `scripts/validate-weekly-input.mjs <photo-folder>`.
-- Run `scripts/analyze-images.mjs <photo-folder>` and use its output in layout decisions.
-- Verify every exported PNG is 1080x1350 unless the user requested strip mode.
-- Open at least one output image visually when possible.
-- Check Korean text does not overflow or collide with logo/tag elements.
-- Check photos are not unnecessarily cropped and that mixed-aspect images still feel intentional.
-- Before committing skill changes, search for personal paths, raw weekly inputs, personal handles, and generated media.
+- Verify every single-card PNG is exactly `1080x1350`.
+- Open every output image and check text overflow, collisions, logo placement, photo crop, and visual balance.
+- Compare all names, order, cohort, date, title, and handles against the latest request.
+- Check Korean spelling and spacing without changing the speaker's intended meaning or voice.
+- Check title line breaks are intentional and body paragraphs remain readable.
+- Confirm Instagram appears near the interviewee name and X appears only on the photo-side tag when provided.
+- Confirm a missing Instagram handle falls back to `@decipher_global`.
+- Confirm a no-speaker week still has the blank date card.
+
+Before publishing skill or renderer changes:
+
+- Run `node scripts/audit-skill-privacy.mjs` from the skill directory.
+- Run the skill validator and the renderer build.
+- Stage only reusable source, documentation, and generic fixtures.
+- Inspect the staged diff and staged binary list before commit and push.

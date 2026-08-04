@@ -1,97 +1,107 @@
 # Decipher Weekly Card Input Contract
 
-This reference defines how to turn loose weekly notes into a stable card spec.
+Convert loose notes into a stable internal card spec without inventing missing facts.
 
 ## User Input
-
-Expected natural input:
 
 ```text
 사진 폴더: <photo-folder>
 메모:
-- 2026-1 Weekly Session # N
-- 주제: ...
-- 발표자: ...
-- 연사: ...
-- 인터뷰: ...
+- 세션 라벨 또는 날짜
+- 주제
+- 발표자 순서
+- 연사 정보
+- 인터뷰 질문과 답변
+- 플랫폼별 공개 핸들
 원하는 카드: weekly, speaker, interview
 출력 폴더: <output-folder>
 ```
 
-Only `사진 폴더` is strictly required for image work. If no memo is provided, ask for content before generating final public copy unless the user explicitly asks for placeholders.
+Only `사진 폴더` is required for image-only revisions. Final public copy still requires the relevant metadata or explicit permission to use placeholders.
 
 ## Internal Spec
-
-Use this shape internally:
 
 ```json
 {
   "weekly": {
     "enabled": true,
     "week": "카드 제목",
-    "topic": "by 이름1, 이름2",
-    "date": "2026-1 Weekly Session # N",
-    "images": ["<image1>", "<image2>"]
+    "topic": "by 발표자 1, 발표자 2",
+    "date": "학기 Weekly Session # N",
+    "images": ["<image-1>", "<image-2>"]
   },
   "speaker": {
-    "enabled": false,
-    "name": "이름",
+    "enabled": true,
+    "mode": "filled | blank",
+    "name": "연사 이름",
     "title": "직함 / 소속",
     "date": "YYYY.MM.DD",
-    "tag": "@handle",
+    "tag": "<speaker-personal-handle>",
     "image": "<image>"
   },
   "interview": {
-    "enabled": false,
-    "name": "기수 이름",
-    "role": "@instagram_handle_or_decipher_global",
-    "tag": "@x_handle",
+    "enabled": true,
+    "contentMode": "faithful",
+    "name": "기수 인터뷰이",
+    "role": "<instagram-handle-or-decipher-global>",
+    "tag": "<x-handle>",
     "image": "<image>",
     "imageLayout": "cover | portraitBlur",
     "slides": [
       {
         "title": "질문 또는 섹션 제목",
-        "body": "요약 답변"
+        "body": "원문 의미와 문단을 보존한 답변"
       }
     ]
   }
 }
 ```
 
-The existing renderer's `TemplateData` may not include `enabled` or image arrays. Convert this spec into the renderer's concrete image fields before export.
+The renderer may not expose `enabled`, `mode`, `contentMode`, or image arrays. Resolve those fields before mapping the spec to the renderer's concrete data structure.
 
-Use `imageLayout: "portraitBlur"` for interview cover photos with a strong portrait/tall aspect ratio when a normal wide crop would cut the person or feel visually awkward.
+## Metadata Contract
 
-## Session Type Detection
+- Copy the latest user-provided name, cohort, date, title, author order, and handle exactly.
+- Treat a correction as a replacement for the older value, not an optional alternative.
+- Never infer a platform from the shape of a handle. Use the platform label in the notes.
+- Never reuse a company handle as a speaker's personal handle.
+- Use `확인 필요` for a missing public field only when the user expects a draft before clarification.
 
-- `weekly`: notes mention weekly, 세션, 발표자 2명, 주제, recap, study, session number.
-- `speaker`: notes mention 연사, 게스트, speaker, 소속/직함, guest handle.
-- `interview`: notes mention 인터뷰, 자기소개, 질문/답변, 기수, personal handle.
-- Mixed set: generate all clearly supported card types.
+## Card-Type Rules
 
-For interview handles, use Instagram for the main lower role field near the name. If Instagram is missing, use `@decipher_global` in the lower role field. Use X/Twitter only for the dark photo-side tag when present. If the note labels handles by platform, preserve that platform split exactly.
+- `weekly`: title, author order, session label, and one to three session photos.
+- `speaker`: filled card when a speaker exists; blank date-only card when the week has no speaker session.
+- `interview`: cover plus exactly one detail card per supplied question and answer.
+
+For interview handles:
+
+- Put Instagram in the lower role field near the interviewee name.
+- Use `@decipher_global` there when Instagram is absent.
+- Put X only in the dark photo-side tag when X is supplied.
+- Leave the side tag empty when no X handle is supplied.
+
+## Text-Fidelity Contract
+
+- Default `contentMode` is `faithful`.
+- Preserve substantive claims, examples, qualifications, quotations, technical terms, and the interviewee's tone.
+- Correct spelling, spacing, and obvious typographical errors without upgrading or sanitizing the voice.
+- Preserve paragraph boundaries where they carry meaning. Add paragraph breaks only to improve reading rhythm.
+- Do not summarize, omit, or combine answers unless the user explicitly allows it.
+- Use manual title newlines at semantic boundaries when a long question would wrap awkwardly.
+- Fit dense copy with restrained whole-block font tiers. Do not use decorative emphasis within a paragraph.
 
 ## Image Selection
 
-- Prefer lecture room wide shots for weekly.
-- Prefer one speaker plus slide image for speaker.
-- Prefer portrait/person image for interview cover.
-- If multiple candidate images fit the same card, choose the sharpest and most content-rich image. If uncertain, choose the least cropped option and list alternatives in final response.
-
-## Text Length Guidelines
-
-- Weekly title: 1-2 lines, roughly 10-28 Korean characters per line.
-- Weekly topic/authors: one short line if possible.
-- Speaker name: short display string only.
-- Speaker title: one line, avoid long biographies.
-- Interview detail title: short question or section title.
-- Interview detail body: 1-3 paragraphs, each compact; summarize aggressively if needed.
+- Weekly: prefer clear session photos that retain the presenter and screen context.
+- Speaker: prefer one photo that clearly identifies the invited speaker and session setting.
+- Interview: prefer a sharp portrait; use `portraitBlur` when a wide crop would damage the composition.
+- When several candidates are viable, choose the sharpest image with the strongest subject separation and least destructive crop.
 
 ## Output Names
 
 - Weekly: `decipher-weekly-<stamp>.png`
 - Speaker: `decipher-speaker-<stamp>.png`
 - Interview cover: `decipher-interview-cover-<stamp>.png`
-- Interview slide: `decipher-interview-slide-<n>-<stamp>.png`
+- Interview detail: `decipher-interview-slide-<n>-<stamp>.png`
 
-Use deterministic suffixes only if the user asks for stable filenames.
+Use deterministic suffixes only when requested.

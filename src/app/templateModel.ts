@@ -65,19 +65,19 @@ export const createDefaultTemplateData = (): TemplateData => ({
   weekly: {
     week: 'Perp Dex 101',
     date: '2026-1 Weekly Session # 1',
-    topic: 'by 이도현, 박정원',
+    topic: 'by 발표자 1, 발표자 2',
     imageLeft: null,
     imageRight: null
   },
   speaker: {
-    name: '함윤식',
-    title: 'Lead Designer / Decipher',
+    name: '연사 이름',
+    title: '소속 / 직함',
     date: '2026.04.20',
     tag: '',
     image: null
   },
   interview: {
-    name: '16기 함윤식',
+    name: '00기 인터뷰이',
     role: DECIPHER_DEFAULT_INSTAGRAM_HANDLE,
     tag: '',
     image: null,

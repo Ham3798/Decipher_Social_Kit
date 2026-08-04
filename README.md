@@ -30,6 +30,14 @@ Use $decipher-weekly-cards to create this week Instagram card set from my photo 
 
 The skill is sanitized for public use. It does not include weekly source photos, generated cards, raw interview answers, personal local paths, or private handles.
 
+Before publishing skill changes, run the deterministic privacy audit:
+
+```sh
+node skills/decipher-weekly-cards/scripts/audit-skill-privacy.mjs
+```
+
+The reusable conventions are split into focused references for input mapping, editorial and layout decisions, visual style, and privacy-safe publishing. Prior-week outputs are optional sanity checks rather than required inputs.
+
 ## Workflow
 
 See [Decipher Weekly Card Workflow](docs/DECIPHER_WEEKLY_CARD_WORKFLOW.md) for the reusable, privacy-safe card generation process and card convention guardrails.

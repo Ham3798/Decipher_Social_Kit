@@ -253,16 +253,44 @@ function renderInterviewDetailCard(slide: InterviewSlide, connected = false) {
   const cardClassName = connected
     ? 'relative isolate w-[1080px] h-[1350px] shrink-0 overflow-hidden'
     : 'relative isolate w-full h-full overflow-hidden';
+  const bodyLength = slide.body.replace(/\s/g, '').length;
+  const titleLength = slide.title.replace(/\s/g, '').length;
+  const titleLineCount = slide.title.split('\n').length;
+  const bodyLineCount = slide.body
+    .split('\n')
+    .reduce((count, line) => count + Math.max(1, Math.ceil(line.length / 26)), 0);
+  const bodyFontSize =
+    bodyLineCount > 23 || bodyLength > 720 ? 22 :
+    bodyLineCount > 19 || bodyLength > 580 ? 24 :
+    bodyLineCount > 16 || bodyLength > 470 ? 26 :
+    bodyLineCount > 13 || bodyLength > 360 ? 28 :
+    bodyLength > 260 ? 32 :
+    36;
+  const bodyLineHeight =
+    bodyFontSize <= 24 ? 1.3 :
+    bodyFontSize <= 28 ? 1.4 :
+    bodyFontSize <= 32 ? 1.48 :
+    1.55;
+  const titleFontSize =
+    titleLineCount > 2 || titleLength > 38 ? 48 :
+    titleLineCount > 1 || titleLength > 24 ? 54 :
+    62;
 
   return (
     <div className={cardClassName}>
       <PaperBackground tone="detail" />
       <div className="absolute left-[42px] right-[42px] top-[120px] bottom-[120px] z-10 border border-[var(--paper-line)] bg-[#fbf2e6]/96 px-[56px] py-[64px]">
-        <div className="text-center text-[62px] font-bold tracking-[-0.05em] text-[#2f4132]">
+        <div
+          className="whitespace-pre-line text-center font-bold tracking-[-0.05em] text-[#2f4132]"
+          style={{ fontSize: `${titleFontSize}px`, lineHeight: 1.18 }}
+        >
           {slide.title}
         </div>
         <div className="mt-[40px] h-px w-full bg-[var(--paper-line)]" />
-        <div className="mt-[42px] whitespace-pre-line text-[36px] font-semibold leading-[1.55] tracking-[-0.01em] text-[#2a2a2a]">
+        <div
+          className="mt-[42px] whitespace-pre-line font-semibold tracking-[-0.01em] text-[#2a2a2a]"
+          style={{ fontSize: `${bodyFontSize}px`, lineHeight: bodyLineHeight }}
+        >
           {slide.body}
         </div>
         <div className="absolute bottom-[36px] right-[36px]">

@@ -47,17 +47,18 @@ Use the established week1 exported cards as the visual baseline. Do not encode a
 ## Interview Detail Slides
 
 - Use a cream inner panel on the paper background.
-- Match the actual week1 exported slide visually: centered bold title around `62px`, body around `36px semibold` with compact Korean line rhythm.
+- Match the actual week1 exported slide visually: centered bold title near `62px`, body near `36px semibold`, and compact Korean line rhythm.
+- Treat those sizes as the spacious default. Use only a few bounded whole-block tiers for unusually long titles or answers, and keep the body above the renderer's readability floor.
 - Use a thin divider line below the title.
-- Body text should be readable, spacious, and not overly long.
+- Preserve meaningful paragraph breaks and uniform body typography. Do not create word-level size changes or decorative emphasis.
 - Keep Decipher logo small at the lower right.
 
 ## Copy Tone
 
-- Korean should be concise, factual, and polished.
+- Korean should be factual and polished while preserving supplied interview content and voice.
 - Prefer final title copy over explanatory copy.
 - Avoid saying the card “shows,” “contains,” or “features.”
-- For summaries, keep the point of the session clear without overexplaining.
+- Summarize only when the user explicitly permits it; otherwise correct spelling, spacing, and sentence flow without dropping substance.
 
 ## Avoid
 
@@ -65,4 +66,4 @@ Use the established week1 exported cards as the visual baseline. Do not encode a
 - One-color purple, blue, beige-only, or trendy gradient treatments.
 - Extra cards inside cards beyond the white photo frame or detail panel.
 - Decorative orbs, stickers, emojis, or generic marketing phrases.
-- Text blocks so long that they feel like a document screenshot.
+- Unstructured text blocks without deliberate paragraphs or adequate line rhythm.
