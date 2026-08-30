@@ -23,8 +23,10 @@ These rules are complete enough to use without finding prior-week outputs.
 - If Instagram is absent, use the public organization fallback `@decipher_global`.
 - Put X only on the photo-side tag. Do not duplicate X near the name.
 - Do not invent a role, employer, or personal biography for the lower label.
-- If the portrait is much taller than the frame, use a two-layer treatment: the same image enlarged and softly blurred behind, with the sharp original contained in front.
-- Keep blur restrained. It exists to reconcile aspect ratios, not to create a decorative effect.
+- Compare the source aspect ratio with the interview photo frame before selecting a layout. If the relative difference is roughly 15% or less, default to `cover`; square sources normally belong in this path.
+- Prefer a shallow, intentional crop over blur fill when the subject and scene remain legible. For a full-body source, a stable waist or mid-thigh crop is acceptable when it avoids awkward cuts.
+- Use the two-layer treatment only when the portrait is substantially taller than the frame and `cover` would remove the face, torso, expressive hands, or essential setting: enlarge and softly blur the same image behind, then contain the sharp original in front.
+- Keep blur restrained. It exists only to resolve a material aspect-ratio mismatch, not to preserve every source pixel or add atmosphere.
 
 ## Interview Detail
 
@@ -43,7 +45,7 @@ These rules are complete enough to use without finding prior-week outputs.
 - Avoid cropping through the head, neck, elbows, knees, or ankles.
 - For full-body portraits, a deliberate crop around the waist or mid-thigh is usually cleaner than leaving small feet near the frame edge. Preserve enough background to explain the setting.
 - For lecture photos, avoid crops that show only a person or only a slide when the original communicates both.
-- For square images, center crop only when the subject is already centered. Otherwise use contain or an adjusted focal position.
+- For square images, prefer a shallow cover crop when the subject is centered or can be preserved with a small focal-position adjustment. Do not introduce blur fill solely because the complete square image would otherwise lose a narrow edge.
 - Do not use generative editing on a person's appearance unless the user explicitly requests it. Prefer crop, position, exposure-neutral framing, and same-image blur fill.
 
 ## Text Fit Order

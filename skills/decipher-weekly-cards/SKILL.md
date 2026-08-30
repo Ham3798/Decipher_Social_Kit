@@ -60,8 +60,9 @@ Default output folder:
 ## Image Rules
 
 - Preserve the person, presentation screen, and meaningful scene context before filling every pixel.
-- Use `portraitBlur` for strongly vertical interview photos that would otherwise require an awkward wide crop.
-- Use a restrained same-image blur fill behind a contained sharp foreground. Do not synthesize or alter a person's appearance.
+- Default interview photos to `cover` when their aspect ratio is close to the interview frame. Square photos fit the current near-square frame with only a shallow crop and must not receive blur fill merely to preserve every source pixel.
+- Use `portraitBlur` only for strongly vertical interview photos whose aspect mismatch would force a visibly destructive crop through the subject or essential context.
+- When `portraitBlur` is necessary, use a restrained same-image blur fill behind a contained sharp foreground. Treat blur as an aspect-ratio fallback, not a default visual effect. Do not synthesize or alter a person's appearance.
 - For two landscape weekly photos, stack them vertically. For portrait-heavy photos, use columns or weighted cells.
 - When replacing one weekly photo, keep the other photo and its slot unchanged unless the user asks for a full recomposition.
 - Avoid cuts through the head, neck, elbows, knees, or ankles. For full-body photos, crop at an intentional stable boundary while retaining useful environmental context.

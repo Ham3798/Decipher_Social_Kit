@@ -94,7 +94,7 @@ For interview handles:
 
 - Weekly: prefer clear session photos that retain the presenter and screen context.
 - Speaker: prefer one photo that clearly identifies the invited speaker and session setting.
-- Interview: prefer a sharp portrait; use `portraitBlur` when a wide crop would damage the composition.
+- Interview: prefer a sharp portrait. Choose `cover` for square or near-frame-ratio photos and accept a shallow intentional crop. Choose `portraitBlur` only when a substantially taller source would suffer a destructive crop through the subject or essential scene context.
 - When several candidates are viable, choose the sharpest image with the strongest subject separation and least destructive crop.
 
 ## Output Names

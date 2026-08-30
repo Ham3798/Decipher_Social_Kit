@@ -36,7 +36,8 @@ Use the established week1 exported cards as the visual baseline. Do not encode a
 ## Interview Cover
 
 - Photo is high and centered in a white frame.
-- For strongly vertical portraits, use blur-fill plus original-image contain inside the frame instead of cropping the person. Keep the treatment subtle so it looks like photo handling, not decoration.
+- Use a normal cover crop for square and near-frame-ratio photos. The interview frame is close enough to square that these inputs usually need only a shallow, intentional crop.
+- Reserve blur-fill plus original-image contain for strongly vertical portraits where a normal cover crop would remove a meaningful part of the person or scene. Keep the treatment subtle so it looks like photo handling, not decoration.
 - Keep interview label small and spaced out.
 - Name is large in the lower left.
 - Instagram handle is below the name; use `@decipher_global` there when no Instagram handle is available.

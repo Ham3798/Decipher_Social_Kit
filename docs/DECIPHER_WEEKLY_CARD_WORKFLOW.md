@@ -54,7 +54,7 @@ Other style rules:
 - Weekly with portrait-heavy images: use left/right columns so subjects keep enough height.
 - Speaker photo: use the centered week1 frame and avoid overlap with the top-left logo.
 - Interview cover photo: preserve the week1 frame; adjust `object-position` when the subject is near an edge.
-- If an interview portrait is much taller than the frame and a normal crop looks awkward, use the portrait blur-fill treatment: blurred same-image fill behind the original photo, with the original photo contained in front.
+- Use a normal cover crop for square and near-frame-ratio interview photos; a shallow crop is preferable to unnecessary blur. Use the portrait blur-fill treatment only when the source is substantially taller than the frame and a normal crop would remove the subject or essential context: blurred same-image fill behind the original photo, with the original photo contained in front.
 - Prefer light crops that preserve the subject, screen, and lecture context.
 - Avoid cuts through the head, neck, elbows, knees, or ankles. Crop full-body photos at a deliberate stable boundary when needed.
 - During a one-photo replacement, preserve the other weekly image and its slot.
