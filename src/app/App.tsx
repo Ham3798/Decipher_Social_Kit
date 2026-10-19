@@ -357,27 +357,6 @@ export default function App() {
     }));
   };
 
-  const updateSpeakerImagePosition = (imagePosition: string) => {
-    setData(prev => ({
-      ...prev,
-      speaker: {
-        ...prev.speaker,
-        imagePosition,
-      }
-    }));
-  };
-
-  const updateSpeakerImageZoom = (imageZoom: string) => {
-    const parsedZoom = Number(imageZoom);
-    setData(prev => ({
-      ...prev,
-      speaker: {
-        ...prev.speaker,
-        imageZoom: Number.isFinite(parsedZoom) ? Math.min(Math.max(parsedZoom, 1), 1.5) : 1,
-      }
-    }));
-  };
-
   const addInterviewSlide = () => {
     setData(prev => ({
       ...prev,
@@ -755,22 +734,6 @@ export default function App() {
               {templateType === 'speaker' && (
                 <>
                   {renderImageUploader('Image', data.speaker.image, 'image')}
-                  {renderTextInput({
-                    label: 'Photo crop position',
-                    value: data.speaker.imagePosition ?? 'center center',
-                    icon: LayoutTemplate,
-                    onChange: updateSpeakerImagePosition,
-                    placeholder: 'center center',
-                    helper: 'Use a CSS object-position value, such as 75% center, to retain an off-center speaker.',
-                  })}
-                  {renderTextInput({
-                    label: 'Photo zoom',
-                    value: String(data.speaker.imageZoom ?? 1),
-                    icon: LayoutTemplate,
-                    onChange: updateSpeakerImageZoom,
-                    placeholder: '1',
-                    helper: 'Use 1.05 to 1.25 for a modest crop toward the speaker. Values are limited to 1 through 1.5.',
-                  })}
                   {renderTextInput({
                     label: 'Speaker Name',
                     value: data.speaker.name,

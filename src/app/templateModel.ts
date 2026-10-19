@@ -27,8 +27,6 @@ export interface TemplateData {
     date: string;
     tag: string;
     image: string | null;
-    imagePosition?: string;
-    imageZoom?: number;
   };
   interview: {
     name: string;

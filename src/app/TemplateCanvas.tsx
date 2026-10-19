@@ -230,10 +230,7 @@ function WeeklyImageCollage({ images }: { images: string[] }) {
     return (
       <div className="flex h-[684px] flex-col gap-3">
         {images.map((image, index) => (
-          <div
-            key={`weekly-vertical-${index}`}
-            className={index === 0 ? 'min-h-0 basis-[58%] overflow-hidden' : 'min-h-0 basis-[42%] overflow-hidden'}
-          >
+          <div key={`weekly-vertical-${index}`} className="min-h-0 flex-1 overflow-hidden">
             <img
               src={image}
               alt={`Weekly session ${index + 1}`}
@@ -317,9 +314,16 @@ function renderTemplateCard(
         <BrandBackdrop segmentIndex={1} />
         <TopAccent variant="weekly" />
         {weeklyImages.length > 0 && (
-          <div className="absolute top-[86px] left-1/2 z-10 w-[920px] -translate-x-1/2 bg-white p-4 shadow-lg">
-            <WeeklyImageCollage images={weeklyImages} />
-          </div>
+          <>
+            <div
+              className="absolute top-[100px] left-1/2 z-[5] h-[716px] w-[920px] bg-[#b89d7b]"
+              style={{ transform: 'translateX(calc(-50% + 14px))' }}
+              aria-hidden="true"
+            />
+            <div className="absolute top-[86px] left-1/2 z-10 w-[920px] -translate-x-1/2 bg-white p-4 shadow-lg">
+              <WeeklyImageCollage images={weeklyImages} />
+            </div>
+          </>
         )}
 
         <div className="relative z-10 flex h-full flex-col justify-end p-20 pb-20">
@@ -357,22 +361,17 @@ function renderTemplateCard(
 
         {data.speaker.image && (
           <>
+            <div
+              className="absolute left-[119px] top-[186px] z-[5] h-[618px] w-[866px] bg-[#b89d7b]"
+              aria-hidden="true"
+            />
             <div className="absolute left-[107px] top-[174px] z-10 w-[866px]">
               <div className="bg-white p-5 shadow-lg">
-                <div className="h-[578px] overflow-hidden">
-                  <img
-                    src={data.speaker.image}
-                    alt="Speaker"
-                    className="h-full w-full object-cover"
-                    style={{
-                      objectPosition: data.speaker.imagePosition ?? 'center center',
-                      transform: data.speaker.imageZoom && data.speaker.imageZoom !== 1
-                        ? `scale(${data.speaker.imageZoom})`
-                        : undefined,
-                      transformOrigin: 'right center',
-                    }}
-                  />
-                </div>
+                <img
+                  src={data.speaker.image}
+                  alt="Speaker"
+                  className="h-[578px] w-full object-cover"
+                />
               </div>
             </div>
             {speakerTag && (
