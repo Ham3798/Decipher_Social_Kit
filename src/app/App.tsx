@@ -346,6 +346,17 @@ export default function App() {
     }));
   };
 
+  const updateInterviewImageZoom = (imageZoom: string) => {
+    const parsedZoom = Number(imageZoom);
+    setData(prev => ({
+      ...prev,
+      interview: {
+        ...prev.interview,
+        imageZoom: Number.isFinite(parsedZoom) ? Math.min(Math.max(parsedZoom, 1), 1.5) : 1,
+      }
+    }));
+  };
+
   const addInterviewSlide = () => {
     setData(prev => ({
       ...prev,
@@ -766,6 +777,14 @@ export default function App() {
                     onChange: updateInterviewImagePosition,
                     placeholder: 'center center',
                     helper: 'Use a CSS object-position value, such as 66% center, when the face needs a small horizontal adjustment.',
+                  })}
+                  {renderTextInput({
+                    label: 'Photo zoom',
+                    value: String(data.interview.imageZoom ?? 1),
+                    icon: LayoutTemplate,
+                    onChange: updateInterviewImageZoom,
+                    placeholder: '1',
+                    helper: 'Use 1.05 to 1.25 for a modest crop toward the subject. Values are limited to 1 through 1.5.',
                   })}
                   {renderTextInput({
                     label: 'Interviewee Name',
