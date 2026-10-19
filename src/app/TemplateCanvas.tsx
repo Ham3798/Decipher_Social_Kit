@@ -230,7 +230,10 @@ function WeeklyImageCollage({ images }: { images: string[] }) {
     return (
       <div className="flex h-[684px] flex-col gap-3">
         {images.map((image, index) => (
-          <div key={`weekly-vertical-${index}`} className="min-h-0 flex-1 overflow-hidden">
+          <div
+            key={`weekly-vertical-${index}`}
+            className={index === 0 ? 'min-h-0 basis-[58%] overflow-hidden' : 'min-h-0 basis-[42%] overflow-hidden'}
+          >
             <img
               src={image}
               alt={`Weekly session ${index + 1}`}
@@ -356,11 +359,20 @@ function renderTemplateCard(
           <>
             <div className="absolute left-[107px] top-[174px] z-10 w-[866px]">
               <div className="bg-white p-5 shadow-lg">
-                <img
-                  src={data.speaker.image}
-                  alt="Speaker"
-                  className="h-[578px] w-full object-cover"
-                />
+                <div className="h-[578px] overflow-hidden">
+                  <img
+                    src={data.speaker.image}
+                    alt="Speaker"
+                    className="h-full w-full object-cover"
+                    style={{
+                      objectPosition: data.speaker.imagePosition ?? 'center center',
+                      transform: data.speaker.imageZoom && data.speaker.imageZoom !== 1
+                        ? `scale(${data.speaker.imageZoom})`
+                        : undefined,
+                      transformOrigin: 'right center',
+                    }}
+                  />
+                </div>
               </div>
             </div>
             {speakerTag && (
