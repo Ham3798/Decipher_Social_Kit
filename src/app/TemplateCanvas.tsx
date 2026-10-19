@@ -255,28 +255,9 @@ function renderInterviewDetailCard(slide: InterviewSlide, connected = false) {
   const cardClassName = connected
     ? 'relative isolate w-[1080px] h-[1350px] shrink-0 overflow-hidden'
     : 'relative isolate w-full h-full overflow-hidden';
-  const bodyLength = slide.body.replace(/\s/g, '').length;
-  const titleLength = slide.title.replace(/\s/g, '').length;
-  const titleLineCount = slide.title.split('\n').length;
-  const bodyLineCount = slide.body
-    .split('\n')
-    .reduce((count, line) => count + Math.max(1, Math.ceil(line.length / 26)), 0);
-  const bodyFontSize =
-    bodyLineCount > 23 || bodyLength > 720 ? 22 :
-    bodyLineCount > 19 || bodyLength > 580 ? 24 :
-    bodyLineCount > 16 || bodyLength > 470 ? 26 :
-    bodyLineCount > 13 || bodyLength > 360 ? 28 :
-    bodyLength > 260 ? 32 :
-    36;
-  const bodyLineHeight =
-    bodyFontSize <= 24 ? 1.3 :
-    bodyFontSize <= 28 ? 1.4 :
-    bodyFontSize <= 32 ? 1.48 :
-    1.55;
-  const titleFontSize =
-    titleLineCount > 2 || titleLength > 38 ? 48 :
-    titleLineCount > 1 || titleLength > 24 ? 54 :
-    62;
+  const bodyFontSize = 30;
+  const bodyLineHeight = 1.42;
+  const titleFontSize = 56;
 
   return (
     <div className={cardClassName}>
@@ -290,7 +271,7 @@ function renderInterviewDetailCard(slide: InterviewSlide, connected = false) {
         </div>
         <div className="mt-[40px] h-px w-full bg-[var(--paper-line)]" />
         <div
-          className="mt-[42px] whitespace-pre-line font-semibold tracking-[-0.01em] text-[#2a2a2a]"
+          className="mt-[42px] whitespace-pre-line break-keep font-semibold tracking-[-0.01em] text-[#2a2a2a]"
           style={{ fontSize: `${bodyFontSize}px`, lineHeight: bodyLineHeight }}
         >
           {slide.body}
