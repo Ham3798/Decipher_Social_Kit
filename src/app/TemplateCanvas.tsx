@@ -143,9 +143,11 @@ function BrandBackdrop({
 function InterviewImage({
   src,
   layout = 'cover',
+  imagePosition = 'center center',
 }: {
   src: string;
   layout?: 'cover' | 'portraitBlur';
+  imagePosition?: string;
 }) {
   if (layout === 'portraitBlur') {
     return (
@@ -172,7 +174,7 @@ function InterviewImage({
       src={src}
       alt="Interviewee"
       className="h-[666px] w-full object-cover"
-      style={{ objectPosition: 'right center' }}
+      style={{ objectPosition: imagePosition }}
     />
   );
 }
@@ -421,7 +423,11 @@ function renderTemplateCard(
         <>
           <div className="absolute top-[86px] left-1/2 z-10 -translate-x-1/2 w-[740px]">
             <div className="bg-white p-5 shadow-lg">
-              <InterviewImage src={data.interview.image} layout={data.interview.imageLayout} />
+              <InterviewImage
+                src={data.interview.image}
+                layout={data.interview.imageLayout}
+                imagePosition={data.interview.imagePosition}
+              />
             </div>
           </div>
           {interviewTag && (

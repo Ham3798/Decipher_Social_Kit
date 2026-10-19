@@ -336,6 +336,16 @@ export default function App() {
     }));
   };
 
+  const updateInterviewImagePosition = (imagePosition: string) => {
+    setData(prev => ({
+      ...prev,
+      interview: {
+        ...prev.interview,
+        imagePosition,
+      }
+    }));
+  };
+
   const addInterviewSlide = () => {
     setData(prev => ({
       ...prev,
@@ -749,6 +759,14 @@ export default function App() {
               {templateType === 'interview' && (
                 <>
                   {renderImageUploader('Image', data.interview.image, 'image')}
+                  {renderTextInput({
+                    label: 'Photo crop position',
+                    value: data.interview.imagePosition ?? 'center center',
+                    icon: LayoutTemplate,
+                    onChange: updateInterviewImagePosition,
+                    placeholder: 'center center',
+                    helper: 'Use a CSS object-position value, such as 66% center, when the face needs a small horizontal adjustment.',
+                  })}
                   {renderTextInput({
                     label: 'Interviewee Name',
                     value: data.interview.name,

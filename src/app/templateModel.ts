@@ -34,6 +34,7 @@ export interface TemplateData {
     tag: string;
     image: string | null;
     imageLayout?: 'cover' | 'portraitBlur';
+    imagePosition?: string;
     slides: InterviewSlide[];
   };
 }
