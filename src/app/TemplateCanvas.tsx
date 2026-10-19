@@ -308,8 +308,10 @@ function renderTemplateCard(
         <BrandBackdrop segmentIndex={1} />
         <TopAccent variant="weekly" />
         {weeklyImages.length > 0 && (
-          <div className="absolute top-[86px] left-1/2 z-10 w-[920px] -translate-x-1/2 bg-white p-4 shadow-lg">
-            <WeeklyImageCollage images={weeklyImages} />
+          <div className="absolute top-[86px] left-1/2 z-10 w-[920px] -translate-x-1/2 bg-[#27322b] p-[10px] shadow-lg">
+            <div className="bg-white p-[5px]">
+              <WeeklyImageCollage images={weeklyImages} />
+            </div>
           </div>
         )}
 
@@ -349,12 +351,14 @@ function renderTemplateCard(
         {data.speaker.image && (
           <>
             <div className="absolute left-[107px] top-[174px] z-10 w-[866px]">
-              <div className="bg-white p-5 shadow-lg">
-                <img
-                  src={data.speaker.image}
-                  alt="Speaker"
-                  className="h-[578px] w-full object-cover"
-                />
+              <div className="bg-[#27322b] p-[10px] shadow-lg">
+                <div className="overflow-hidden bg-white p-[5px]">
+                  <img
+                    src={data.speaker.image}
+                    alt="Speaker"
+                    className="h-[578px] w-full object-cover"
+                  />
+                </div>
               </div>
             </div>
             {speakerTag && (
